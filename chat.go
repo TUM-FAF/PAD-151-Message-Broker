@@ -22,9 +22,12 @@ import (
 )
 
 const (
-    CONN_HOST      = "0.0.0.0"
-    CONN_PORT      = "8080"
-    CONN_TYPE      = "tcp"
+	// ConnHost means connection host
+	ConnHost = "0.0.0.0"
+	// ConnPort means connection port
+	ConnPort = "8080"
+	// ConnType means connection type
+	ConnType = "tcp"
 )
 
 func main() {
@@ -57,12 +60,12 @@ func main() {
 
 	// Start the TCP server
 	//
-	server, err := net.Listen(CONN_TYPE, CONN_HOST + ":" + CONN_PORT)
+	server, err := net.Listen(ConnType, ConnHost+":"+ConnPort)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	} else {
-		fmt.Println("Server started at port:", CONN_PORT)
+		fmt.Println("Server started at port:", ConnPort)
 	}
 
 	// Accept connections in a separate go-routine
@@ -87,7 +90,7 @@ func main() {
 			// Add this connection to the `allClients` map
 			//
 			allClients[conn] = clientCount
-			clientCount += 1
+			clientCount++
 
 			go getMessages(conn, allClients[conn], messages, deadConnections)
 
@@ -97,7 +100,7 @@ func main() {
 
 			// Loop over all connected clients
 			//
-			for conn, _ := range allClients {
+			for conn := range allClients {
 
 				// Send them a message in a go-routine
 				// so that the network operation doesn't block
@@ -134,14 +137,14 @@ func acceptConnection(server net.Listener, newConnections chan<- net.Conn) {
 // client in a goroutine and push those onto
 // the messages channel for broadcast to others.
 //
-func getMessages(conn net.Conn, clientId int, messages chan<- string, deadConnections chan<- net.Conn) {
+func getMessages(conn net.Conn, clientID int, messages chan<- string, deadConnections chan<- net.Conn) {
 	reader := bufio.NewReader(conn)
 	for {
 		incoming, err := reader.ReadString('\n')
 		if err != nil {
 			break
 		}
-		messages <- fmt.Sprintf("Client %d > %s", clientId, incoming)
+		messages <- fmt.Sprintf("Client %d > %s", clientID, incoming)
 	}
 
 	// When we encouter `err` reading, send this
