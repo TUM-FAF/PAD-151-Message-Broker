@@ -1,31 +1,28 @@
 package broker
 
 import (
-	"bufio"
 	"fmt"
 	"log"
 	"net"
 	"os"
 )
 
+// Broker is type representing the message broker
 type Broker struct {
-	clientCount     int
-	allClients      map[net.Conn]int
-	newConnections  chan net.Conn
-	deadConnections chan net.Conn
-	messages        chan string
+	clientCount    int
+	userMap        map[int]*User
+	newConnections chan net.Conn
+	deadUserIds    chan int
+	messages       chan string
 }
 
+// Init initiates broker data
 func (broker *Broker) Init() {
 	// Number of people whom ever connected
 	//
 	broker.clientCount = 0
 
-	// All people who are connected; a map wherein
-	// the keys are net.Conn objects and the values
-	// are client "ids", an integer.
-	//
-	broker.allClients = make(map[net.Conn]int)
+	broker.userMap = make(map[int]*User)
 
 	// Channel into which the TCP server will push
 	// new connections.
@@ -35,7 +32,7 @@ func (broker *Broker) Init() {
 	// Channel into which we'll push dead connections
 	// for removal from allClients.
 	//
-	broker.deadConnections = make(chan net.Conn)
+	broker.deadUserIds = make(chan int)
 
 	// Channel into which we'll push messages from
 	// connected clients so that we can broadcast them
@@ -44,6 +41,7 @@ func (broker *Broker) Init() {
 	broker.messages = make(chan string)
 }
 
+// StartServer creates server, accepts connetions and runs broker
 func (broker *Broker) StartServer(connHost string, connPort string, connType string) {
 	// Start the TCP server
 	//
@@ -54,6 +52,7 @@ func (broker *Broker) StartServer(connHost string, connPort string, connType str
 	} else {
 		fmt.Println("Server started at port:", connPort)
 	}
+	defer server.Close()
 
 	//Listen accept connection in another goroutine
 	go func() {
@@ -66,8 +65,13 @@ func (broker *Broker) StartServer(connHost string, connPort string, connType str
 			broker.newConnections <- conn
 		}
 	}()
+
+	broker.Run()
 }
 
+// Run handle 1) new connections; 2) dead connections;
+// and, 3) broadcast messages.
+//
 func (broker *Broker) Run() {
 	for {
 		select {
@@ -76,12 +80,15 @@ func (broker *Broker) Run() {
 		case conn := <-broker.newConnections:
 			log.Printf("Accepted new client, #%d", broker.clientCount)
 
-			// Add this connection to the `allClients` map
+			// Create user and add him to the `userMap`
 			//
-			broker.allClients[conn] = broker.clientCount
+			user := NewUser(conn, broker.clientCount)
+
+			broker.userMap[broker.clientCount] = user
+
 			broker.clientCount++
 
-			go getMessages(conn, broker.allClients[conn], broker.messages, broker.deadConnections)
+			go getMessages(user, broker.messages, broker.deadUserIds)
 
 		// Accept messages from connected clients
 		//
@@ -89,52 +96,24 @@ func (broker *Broker) Run() {
 
 			// Loop over all connected clients
 			//
-			for conn := range broker.allClients {
+			for id := range broker.userMap {
 
 				// Send them a message in a go-routine
 				// so that the network operation doesn't block
 				//
-				go sendMessage(conn, message, broker.deadConnections)
+				user := broker.userMap[id]
+
+				// Send message to specified user
+				go sendMessage(user, message, broker.deadUserIds)
 			}
 			log.Printf("New message: %s", message)
-			log.Printf("Broadcast to %d clients", len(broker.allClients))
+			log.Printf("Broadcast to %d clients", len(broker.userMap))
 
 		// Remove dead clients
 		//
-		case conn := <-broker.deadConnections:
-			log.Printf("Client %d disconnected", broker.allClients[conn])
-			delete(broker.allClients, conn)
+		case userID := <-broker.deadUserIds:
+			log.Printf("Client %d disconnected", userID)
+			delete(broker.userMap, userID)
 		}
-	}
-}
-
-// Constantly read incoming messages from this
-// client in a goroutine and push those onto
-// the messages channel for broadcast to others.
-//
-func getMessages(conn net.Conn, clientID int, messages chan<- string, deadConnections chan<- net.Conn) {
-	reader := bufio.NewReader(conn)
-	for {
-		incoming, err := reader.ReadString('\n')
-		if err != nil {
-			break
-		}
-		messages <- fmt.Sprintf("Client %d > %s", clientID, incoming)
-	}
-
-	// When we encouter `err` reading, send this
-	// connection to `deadConnections` for removal.
-	//
-	deadConnections <- conn
-}
-
-// Send message to connection
-func sendMessage(conn net.Conn, message string, deadConnections chan<- net.Conn) {
-	_, err := conn.Write([]byte(message))
-
-	// If there was an error communicating
-	// with them, the connection is dead.
-	if err != nil {
-		deadConnections <- conn
 	}
 }
