@@ -7,5 +7,5 @@ func main() {
 	myBroker.Init()
 	myBroker.StartServer("0.0.0.0", "8080", "tcp")
 
-	myBroker.HandleChannels()
+	myBroker.Run()
 }
