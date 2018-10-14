@@ -54,7 +54,7 @@ func (broker *Broker) StartServer(connHost string, connPort string, connType str
 	}
 	defer server.Close()
 
-	//Listen accept connection in another goroutine
+	//Listen accepted connection in another goroutine
 	go func() {
 		for {
 			conn, err := server.Accept()
@@ -62,6 +62,7 @@ func (broker *Broker) StartServer(connHost string, connPort string, connType str
 				fmt.Println(err)
 				os.Exit(1)
 			}
+
 			broker.newConnections <- conn
 		}
 	}()
@@ -78,11 +79,10 @@ func (broker *Broker) Run() {
 		// Accept new clients
 		//
 		case conn := <-broker.newConnections:
-			log.Printf("Accepted new client, #%d", broker.clientCount)
-
 			// Create user and add him to the `userMap`
 			//
-			user := NewUser(conn, broker.clientCount)
+			user := new(User)
+			user.Init(conn, broker.clientCount)
 
 			broker.userMap[broker.clientCount] = user
 
@@ -90,7 +90,7 @@ func (broker *Broker) Run() {
 
 			go getMessages(user, broker.messages, broker.deadUserIds)
 
-		// Accept messages from connected clients
+		// Accept messages from connected client
 		//
 		case message := <-broker.messages:
 

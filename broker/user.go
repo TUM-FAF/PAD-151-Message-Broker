@@ -2,7 +2,9 @@ package broker
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
+	"log"
 	"net"
 )
 
@@ -10,14 +12,29 @@ import (
 type User struct {
 	conn net.Conn
 	id   int
+	name string
 }
 
-// NewUser returns a new user and return pointer ot it
-func NewUser(conn net.Conn, id int) *User {
-	return &User{
-		conn: conn,
-		id:   id,
-	}
+type UserModel struct {
+	Name string
+}
+
+// Init initiates data in user
+func (user *User) Init(conn net.Conn, id int) {
+	user.conn = conn
+	user.id = id
+	user.name = getUserName(conn)
+	log.Printf("Accepted new client, #%s", user.name)
+}
+
+func getUserName(conn net.Conn) string {
+	// we create a decoder that reads directly from the socket
+	var userModel UserModel
+	reader := bufio.NewReader(conn)
+	message, _ := reader.ReadString('\n')
+	// fmt.Println(message)
+	json.Unmarshal([]byte(message), &userModel)
+	return userModel.Name
 }
 
 // Constantly read incoming messages from this
@@ -31,7 +48,7 @@ func getMessages(user *User, messages chan<- string, deadUserIds chan<- int) {
 		if err != nil {
 			break
 		}
-		messages <- fmt.Sprintf("Client %d > %s", user.id, incoming)
+		messages <- fmt.Sprintf("Client %s > %s", user.name, incoming)
 	}
 
 	// When we encouter `err` reading, send this
