@@ -3,10 +3,10 @@ package broker
 import (
 	"PAD-151-Message-Broker/model"
 	"bufio"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net"
+	"strings"
 )
 
 // User is type representing the client that connects to server
@@ -28,9 +28,10 @@ func getUserName(conn net.Conn) string {
 	// we create a decoder that reads directly from the socket
 	var userModel model.UserModel
 	reader := bufio.NewReader(conn)
-	message, _ := reader.ReadString('\n')
+	message, _ := reader.ReadString(';')
 	// fmt.Println(message)
-	json.Unmarshal([]byte(message), &userModel)
+	message = strings.TrimSuffix(message, ";")
+	model.DecodeJsonMessage([]byte(message), &userModel)
 	return userModel.Name
 }
 
@@ -38,14 +39,20 @@ func getUserName(conn net.Conn) string {
 // user and push those onto
 // the messages channel for broadcast to others.
 //
-func getMessages(user *User, messages chan<- string, deadUserIds chan<- int) {
+func getMessages(user *User, messages chan<- model.SentMessageModel, deadUserIds chan<- int) {
 	reader := bufio.NewReader(user.conn)
 	for {
-		incoming, err := reader.ReadString('\n')
+		incoming, err := reader.ReadString(';')
 		if err != nil {
 			break
 		}
-		messages <- fmt.Sprintf("Client %s > %s", user.name, incoming)
+		// messages <- fmt.Sprintf("Client %s > %s", user.name, incoming)
+		incoming = strings.TrimSuffix(incoming, ";")
+		sentMessageModel := model.SentMessageModel{}
+
+		model.DecodeJsonMessage([]byte(incoming), &sentMessageModel)
+		sentMessageModel.SenderID = user.id
+		messages <- sentMessageModel
 	}
 
 	// When we encouter `err` reading, send this
@@ -55,8 +62,13 @@ func getMessages(user *User, messages chan<- string, deadUserIds chan<- int) {
 }
 
 // Send message to users connection
-func sendMessage(user *User, message string, deadUserIds chan<- int) {
-	_, err := user.conn.Write([]byte(message))
+func sendMessage(user *User, response model.ResponseMessageModel, deadUserIds chan<- int) {
+
+	data, error := model.EncodeYamlMessage(response)
+	if error != nil {
+		fmt.Println(error)
+	}
+	_, err := user.conn.Write(data)
 
 	// If there was an error communicating
 	// with specified user, the connection is dead

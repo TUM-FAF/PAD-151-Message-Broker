@@ -18,8 +18,9 @@ type ConnectionModel struct {
 	} `json:"rooms"`
 }
 
-// SendMessageModel - on new message, client send
-type SendMessageModel struct {
+// SentMessageModel - on new message, client send
+type SentMessageModel struct {
+	SenderID  int    `json:"senderID"`
 	Type      int    `json:"type"`
 	Receivers []int  `json:"receivers"`
 	Message   string `json:"message"`
@@ -27,8 +28,8 @@ type SendMessageModel struct {
 
 // ResponseMessageModel - on new message, broker send
 type ResponseMessageModel struct {
-	SenderUser int    `json:"senderUser"`
-	Type       int    `json:"type"`
-	Room       int    `json:"room"`
-	Message    string `json:"message"`
+	SenderID int    `json:"senderID"`
+	Type     int    `json:"type"`
+	Room     int    `json:"room"`
+	Message  string `json:"message"`
 }

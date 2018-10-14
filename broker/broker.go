@@ -1,6 +1,7 @@
 package broker
 
 import (
+	"PAD-151-Message-Broker/model"
 	"fmt"
 	"log"
 	"net"
@@ -13,7 +14,7 @@ type Broker struct {
 	userMap        map[int]*User
 	newConnections chan net.Conn
 	deadUserIds    chan int
-	messages       chan string
+	messages       chan model.SentMessageModel
 }
 
 // Init initiates broker data
@@ -38,7 +39,7 @@ func (broker *Broker) Init() {
 	// connected clients so that we can broadcast them
 	// to every connection in allClients.
 	//
-	broker.messages = make(chan string)
+	broker.messages = make(chan model.SentMessageModel)
 }
 
 // StartServer creates server, accepts connetions and runs broker
@@ -92,10 +93,17 @@ func (broker *Broker) Run() {
 
 		// Accept messages from connected client
 		//
-		case message := <-broker.messages:
-
+		case sentMessageModel := <-broker.messages:
 			// Loop over all connected clients
 			//
+
+			responseMessageModel := model.ResponseMessageModel{
+				sentMessageModel.SenderID,
+				sentMessageModel.Type,
+				-1,
+				sentMessageModel.Message,
+			}
+
 			for id := range broker.userMap {
 
 				// Send them a message in a go-routine
@@ -104,9 +112,10 @@ func (broker *Broker) Run() {
 				user := broker.userMap[id]
 
 				// Send message to specified user
-				go sendMessage(user, message, broker.deadUserIds)
+
+				go sendMessage(user, responseMessageModel, broker.deadUserIds)
 			}
-			log.Printf("New message: %s", message)
+			log.Printf("New message: Client %s -> %s", broker.userMap[sentMessageModel.SenderID].name, sentMessageModel.Message)
 			log.Printf("Broadcast to %d clients", len(broker.userMap))
 
 		// Remove dead clients
