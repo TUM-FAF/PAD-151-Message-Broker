@@ -7,7 +7,7 @@
 package main
 
 import (
-	"bufio"
+	"PAD-151-Message-Broker/client"
 	"flag"
 	"fmt"
 	"net"
@@ -31,26 +31,7 @@ func main() {
 		fmt.Printf("%s %d\n", brokerIP, brokerPort)
 	}
 
-	conn, err := net.Dial("tcp", brokerIP.String()+":"+strconv.Itoa(brokerPort))
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-	for {
-		// read in input from stdin
-		reader := bufio.NewReader(os.Stdin)
-		fmt.Print(">>")
-		text, err := reader.ReadString('\n')
-		if err != nil {
-			fmt.Println(err)
-		}
-		// send to socket
-		fmt.Fprintf(conn, text+"\n")
-		// listen for reply
-		message, err := bufio.NewReader(conn).ReadString('\n')
-		if err != nil {
-			fmt.Println(err)
-		}
-		fmt.Println(message)
-	}
+	client := client.Client{}
+	client.Init("tcp", brokerIP.String()+":"+strconv.Itoa(brokerPort))
+	client.Run()
 }
