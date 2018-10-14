@@ -49,8 +49,11 @@ func (c *Client) Run() {
 }
 
 func (c *Client) handleIncomingMessage(message string) {
-	fmt.Println("incoming msg: " + message)
 	// go notification.PlayNotification()
+	mp := MessageParser{}
+	m, err := mp.Parse(message)
+	fmt.Println(err)
+	fmt.Println(m)
 
 }
 
