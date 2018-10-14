@@ -1,6 +1,7 @@
 package client
 
 import (
+	"PAD-151-Message-Broker/notification"
 	"bufio"
 	"fmt"
 	"net"
@@ -49,6 +50,7 @@ func (c *Client) Run() {
 
 func (c *Client) handleIncomingMessage(message string) {
 	fmt.Println("incoming msg: " + message)
+	go notification.PlayNotification()
 }
 
 func (c *Client) handleOutcomingMessage(message string) {
