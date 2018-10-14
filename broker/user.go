@@ -1,6 +1,7 @@
 package broker
 
 import (
+	"PAD-151-Message-Broker/model"
 	"bufio"
 	"encoding/json"
 	"fmt"
@@ -15,10 +16,6 @@ type User struct {
 	name string
 }
 
-type UserModel struct {
-	Name string
-}
-
 // Init initiates data in user
 func (user *User) Init(conn net.Conn, id int) {
 	user.conn = conn
@@ -29,7 +26,7 @@ func (user *User) Init(conn net.Conn, id int) {
 
 func getUserName(conn net.Conn) string {
 	// we create a decoder that reads directly from the socket
-	var userModel UserModel
+	var userModel model.UserModel
 	reader := bufio.NewReader(conn)
 	message, _ := reader.ReadString('\n')
 	// fmt.Println(message)
