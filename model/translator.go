@@ -28,7 +28,7 @@ func DecodeJsonMessage(data []byte, dataType interface{}) error {
 
 // EncodeJsonMessage ..
 func EncodeJsonMessage(message interface{}) ([]byte, error) {
-	data, err := yaml.Marshal(message)
+	data, err := json.Marshal(message)
 	if err != nil {
 	}
 	return data, err

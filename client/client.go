@@ -1,6 +1,7 @@
 package client
 
 import (
+	"PAD-151-Message-Broker/model"
 	"bufio"
 	"fmt"
 	"net"
@@ -54,12 +55,17 @@ func (c *Client) handleIncomingMessage(message string) {
 }
 
 func (c *Client) handleOutcomingMessage(message string) {
-	fmt.Println("outcoming msg: " + message)
 	c.connection.Write([]byte(message))
 	mp := MessageParser{}
-	model, _ := mp.Parse(message)
-
-	fmt.Println(model)
+	m, err := mp.Parse(message)
+	if err != nil {
+		return
+	}
+	b, err := model.EncodeJsonMessage(m)
+	if err != nil {
+		fmt.Print(err)
+	}
+	c.connection.Write(b)
 }
 
 func (c *Client) send(data string) {
