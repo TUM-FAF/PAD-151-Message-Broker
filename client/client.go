@@ -16,6 +16,7 @@ type Client struct {
 	connection  net.Conn
 	incomingMsg chan string
 	outcominMsg chan string
+	id          int
 }
 
 // Init ...
@@ -44,7 +45,8 @@ func (c *Client) Connect() {
 	message = strings.TrimSuffix(message, "\n")
 	c.sendConnectionRequest(message)
 	data := c.getConnectionResponse()
-	fmt.Printf("data: %s", data)
+	c.id = data.YourID
+	fmt.Printf("Your ID: %v\nRooms: %v\nUsers: %v\n", data.YourID, data.Rooms, data.Users)
 }
 
 // Run ...
@@ -65,22 +67,21 @@ func (c *Client) Run() {
 }
 
 func (c *Client) handleIncomingMessage(message string) {
-	// go notification.PlayNotification()
 	mp := ResponseParser{}
 	m, err := mp.Parse(message)
-	fmt.Println(err)
+	if err != nil {
+		fmt.Println(err)
+	}
 	fmt.Println(m)
-
 }
 
 func (c *Client) handleOutcomingMessage(message string) {
 	mp := MessageParser{}
-	m, err := mp.Parse(message)
+	m, err := mp.Parse(message, c)
 	if err != nil {
 		return
 	}
 	b, err := model.EncodeJsonMessage(m)
-	fmt.Println(string(b))
 
 	if err != nil {
 		fmt.Print(err)
@@ -90,48 +91,49 @@ func (c *Client) handleOutcomingMessage(message string) {
 	c.connection.Write(append(b, newline...))
 }
 
+func (c *Client) listenIncomingMessages() {
+	reader := c.connection
+	wrapper := BufferedReader{reader}
+	c.listen(wrapper, c.incomingMsg)
+}
+
+func (c *Client) listenOutcomingMessages() {
+	reader := bufio.NewReader(os.Stdin)
+	wrapper := NewlineReader{reader}
+	c.listen(wrapper, c.outcominMsg)
+}
+
+func (c *Client) listen(reader Reader, channel chan string) {
+	for {
+		s, err := reader.Read()
+		if err != nil {
+			fmt.Println(err)
+		}
+		channel <- string(s)
+	}
+}
+
 func (c *Client) sendConnectionRequest(data string) {
 	cp := ConnectionParser{}
 	msg, err := cp.ParseRequest(data)
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println(string(msg.([]byte)))
 	newline := make([]byte, 1)
 	newline[0] = '\n'
 	c.connection.Write(append(msg.([]byte), newline...))
 }
 
-func (c *Client) getConnectionResponse() string {
-	reader := bufio.NewReader(c.connection)
-	data, err := reader.ReadString('\n')
+func (c *Client) getConnectionResponse() model.ConnectionModel {
+	recvBuf := make([]byte, 1024)
+	n, err := c.connection.Read(recvBuf[:])
 	if err != nil {
 		fmt.Println(err)
 	}
 	cp := ConnectionParser{}
-	msg, err := cp.ParseResponse(data)
+	msg, err := cp.ParseResponse(string(recvBuf[:n]))
 	if err != nil {
 		fmt.Println(err)
 	}
-	return msg.(string)
-}
-
-func (c *Client) listenIncomingMessages() {
-	reader := bufio.NewReader(c.connection)
-	c.listen(reader, c.incomingMsg)
-}
-
-func (c *Client) listenOutcomingMessages() {
-	reader := bufio.NewReader(os.Stdin)
-	c.listen(reader, c.outcominMsg)
-}
-
-func (c *Client) listen(reader *bufio.Reader, channel chan string) {
-	for {
-		message, err := reader.ReadString('\n')
-		if err != nil {
-			fmt.Println(err, message)
-		}
-		channel <- message
-	}
+	return msg.(model.ConnectionModel)
 }

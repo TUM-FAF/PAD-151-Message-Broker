@@ -7,7 +7,7 @@ import (
 )
 
 // DecodeYamlMessage ...
-func DecodeYamlMessage(data []byte, dataType *interface{}) error {
+func DecodeYamlMessage(data []byte, dataType interface{}) error {
 	err := yaml.Unmarshal(data, dataType)
 	return err
 }

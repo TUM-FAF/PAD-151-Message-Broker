@@ -2,7 +2,6 @@ package client
 
 import (
 	"PAD-151-Message-Broker/model"
-	"fmt"
 )
 
 // ConnectionParser ...
@@ -13,8 +12,6 @@ type ConnectionParser struct {
 func (cp *ConnectionParser) ParseRequest(response string) (interface{}, error) {
 	m := model.UserModel{}
 	m.Name = response
-	fmt.Println(m)
-	// i := connectionRequestHelper(m)
 	i, err := model.EncodeJsonMessage(connectionRequestHelper(m))
 	return i, err
 }
@@ -22,9 +19,8 @@ func (cp *ConnectionParser) ParseRequest(response string) (interface{}, error) {
 // ParseResponse ..
 func (cp *ConnectionParser) ParseResponse(response string) (interface{}, error) {
 	m := model.ConnectionModel{}
-	i := connectionResponseHelper(m)
-	err := model.DecodeYamlMessage([]byte(response), &i)
-	return i, err
+	err := model.DecodeYamlMessage([]byte(response), &m)
+	return m, err
 }
 
 func connectionRequestHelper(in model.UserModel) interface{} {
