@@ -2,17 +2,15 @@ package model
 
 // UserModel refer to message transfered by user at connection
 type UserModel struct {
+	ID   int    `json:"id"`
 	Name string `json:"name"`
 }
 
 // ConnectionModel - on connection (or on request), broker send connected clients
 type ConnectionModel struct {
-	YourID int `json:"yourId"`
-	Users  []struct {
-		ID   int    `json:"id"`
-		Name string `json:"name"`
-	} `json:"users"`
-	Rooms []struct {
+	YourID int         `json:"yourId"`
+	Users  []UserModel `json:"users"`
+	Rooms  []struct {
 		ID   int    `json:"id"`
 		Room string `json:"room"`
 	} `json:"rooms"`
