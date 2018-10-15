@@ -4,7 +4,6 @@ import (
 	"PAD-151-Message-Broker/model"
 	"fmt"
 	"log"
-	"math/rand"
 	"net"
 	"os"
 )
@@ -102,28 +101,29 @@ func (broker *Broker) Run() {
 		case conn := <-broker.newConnections:
 			// Create user and add him to the `userMap`
 			//
-			user := new(User)
-			user.Init(conn, broker.clientCount)
-			user.id = rand.Int()
-			var responseModel model.ConnectionModel
-			responseModel.Rooms = nil
-			responseModel.YourID = user.id
+			newUser := new(User)
+			newUser.Init(conn, broker.clientCount)
 
-			users := make(map[int]string)
-			for _, v := range broker.userMap {
-				users[v.id] = v.name
+			var connectionModel model.ConnectionModel
+			connectionModel.Rooms = nil
+			connectionModel.YourID = newUser.id
+
+			for i, user := range broker.userMap {
+				existingUser := model.UserModel{i, user.name}
+				connectionModel.Users = append(connectionModel.Users, existingUser)
 			}
-			responseModel.Users = nil
 
-			r, _ := model.EncodeYamlMessage(responseModel)
+			// Transform to data to Yaml
+			r, _ := model.EncodeYamlMessage(connectionModel)
 
+			// Give data back to connected user.
 			conn.Write(r)
 
-			broker.userMap[broker.clientCount] = user
+			broker.userMap[broker.clientCount] = newUser
 
 			broker.clientCount++
 
-			go getMessages(user, broker.messages, broker.deadUserIds)
+			go getMessages(newUser, broker.messages, broker.deadUserIds)
 
 		// Accept messages from connected client
 		//

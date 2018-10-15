@@ -2,8 +2,6 @@ package client
 
 import (
 	"PAD-151-Message-Broker/model"
-
-	"gopkg.in/yaml.v2"
 )
 
 // ConnectionParser ...
@@ -21,7 +19,7 @@ func (cp *ConnectionParser) ParseRequest(response string) (interface{}, error) {
 // ParseResponse ..
 func (cp *ConnectionParser) ParseResponse(response string) (interface{}, error) {
 	m := model.ConnectionModel{}
-	err := yaml.Unmarshal([]byte(response), &m)
+	err := model.DecodeYamlMessage([]byte(response), &m)
 	return m, err
 }
 
