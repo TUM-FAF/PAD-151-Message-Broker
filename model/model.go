@@ -1,7 +1,5 @@
 package model
 
-import yaml "gopkg.in/yaml.v2"
-
 // UserModel refer to message transfered by user at connection
 type UserModel struct {
 	Name string `json:"name"`
@@ -34,9 +32,4 @@ type ResponseMessageModel struct {
 	Type     int    `json:"type"`
 	Room     int    `json:"room"`
 	Message  string `json:"message"`
-}
-
-// Parse d..
-func (c *ConnectionModel) Parse(data []byte) error {
-	return yaml.Unmarshal(data, c)
 }
