@@ -15,6 +15,7 @@ type Broker struct {
 	newConnections chan net.Conn
 	deadUserIds    chan int
 	messages       chan model.SentMessageModel
+	subscribers    map[int][]int
 }
 
 // Init initiates broker data
@@ -40,6 +41,10 @@ func (broker *Broker) Init() {
 	// to every connection in allClients.
 	//
 	broker.messages = make(chan model.SentMessageModel)
+
+	//Map of all subscribers
+	//
+	broker.subscribers = make(map[int][]int)
 }
 
 // StartServer creates server, accepts connetions and runs broker
@@ -108,30 +113,9 @@ func (broker *Broker) Run() {
 
 		// Accept messages from connected client
 		//
-		case sentMessageModel := <-broker.messages:
-			// Loop over all connected clients
-			//
-
-			responseMessageModel := model.ResponseMessageModel{
-				sentMessageModel.SenderID,
-				sentMessageModel.Type,
-				-1,
-				sentMessageModel.Message,
-			}
-
-			for id := range broker.userMap {
-
-				// Send them a message in a go-routine
-				// so that the network operation doesn't block
-				//
-				user := broker.userMap[id]
-
-				// Send message to specified user
-
-				go sendMessage(user, responseMessageModel, broker.deadUserIds)
-			}
-			log.Printf("New message: Client %s -> %s", broker.userMap[sentMessageModel.SenderID].name, sentMessageModel.Message)
-			log.Printf("Broadcast to %d clients", len(broker.userMap))
+		case message := <-broker.messages:
+			command := DispatchMessage(message, broker)
+			command.Execute()
 
 		// Remove dead clients
 		//
