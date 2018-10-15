@@ -67,12 +67,12 @@ func (c *Client) Run() {
 }
 
 func (c *Client) handleIncomingMessage(message string) {
-	mp := ResponseParser{}
-	m, err := mp.Parse(message)
+	m := model.ResponseMessageModel{}
+	err := model.DecodeYamlMessage([]byte(message), &m)
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println(m)
+	fmt.Printf("Client Id %d: %s\n", m.SenderID, m.Message)
 }
 
 func (c *Client) handleOutcomingMessage(message string) {
