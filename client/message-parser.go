@@ -21,7 +21,7 @@ type MessageParser struct {
 // "/s [username]" - subscribe to a user
 // "/c" - get all active connections
 func (mp *MessageParser) Parse(userInput string) (interface{}, error) {
-	model := new(model.SendMessageModel)
+	model := new(model.SentMessageModel)
 	switch {
 	case strings.HasPrefix(userInput, "/b "):
 		re := regexp.MustCompile(`^\/b (?P<Msg>([[:graph:]]|\s)*)$`)

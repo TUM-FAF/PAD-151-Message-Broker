@@ -32,6 +32,20 @@ func (c *Client) Init(protocol string, address string) {
 	c.outcominMsg = make(chan string)
 }
 
+//Connect ...
+func (c *Client) Connect() {
+	fmt.Print("Enter your name: ")
+	reader := bufio.NewReader(os.Stdin)
+	message, err := reader.ReadString('\n')
+	if err != nil {
+		fmt.Println(err, message)
+	}
+	fmt.Println(message)
+	c.sendConnectionRequest(message)
+	data := c.getConnectionResponse()
+	fmt.Printf("data: %s", data)
+}
+
 // Run ...
 func (c *Client) Run() {
 	go c.listenIncomingMessages()
@@ -65,18 +79,36 @@ func (c *Client) handleOutcomingMessage(message string) {
 		return
 	}
 	b, err := model.EncodeJsonMessage(m)
+	fmt.Println(string(b))
+
 	if err != nil {
 		fmt.Print(err)
 	}
 	c.connection.Write(b)
 }
 
-func (c *Client) send(data string) {
-
+func (c *Client) sendConnectionRequest(data string) {
+	cp := ConnectionParser{}
+	msg, err := cp.ParseRequest(data)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(string(msg.([]byte)))
+	c.connection.Write(msg.([]byte))
 }
 
-func (c *Client) get() string {
-	return ""
+func (c *Client) getConnectionResponse() string {
+	reader := bufio.NewReader(c.connection)
+	data, err := reader.ReadString('\n')
+	if err != nil {
+		fmt.Println(err)
+	}
+	cp := ConnectionParser{}
+	msg, err := cp.ParseResponse(data)
+	if err != nil {
+		fmt.Println(err)
+	}
+	return msg.(string)
 }
 
 func (c *Client) listenIncomingMessages() {

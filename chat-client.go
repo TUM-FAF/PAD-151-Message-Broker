@@ -33,5 +33,6 @@ func main() {
 
 	client := client.Client{}
 	client.Init("tcp", brokerIP.String()+":"+strconv.Itoa(brokerPort))
+	client.Connect()
 	client.Run()
 }

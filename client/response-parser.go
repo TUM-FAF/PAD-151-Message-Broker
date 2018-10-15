@@ -4,9 +4,6 @@ import (
 	"PAD-151-Message-Broker/model"
 )
 
-type Emptyness interface {
-}
-
 // ResponseParser ...
 type ResponseParser struct {
 }
