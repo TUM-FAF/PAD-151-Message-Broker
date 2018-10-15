@@ -17,6 +17,7 @@ func (pc PublishCommand) Execute() {
 	log.Printf("Clien %v posted", publisherID)
 	responseMessageModel := model.ResponseMessageModel{
 		pc.message.SenderID,
+		pc.broker.userMap[pc.message.SenderID].name,
 		pc.message.Type,
 		-1,
 		pc.message.Message,

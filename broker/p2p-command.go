@@ -17,6 +17,7 @@ func (pc P2pCommand) Execute() {
 	log.Printf("Send message to client %v", pc.message.Receivers)
 	responseMessageModel := model.ResponseMessageModel{
 		pc.message.SenderID,
+		pc.broker.userMap[pc.message.SenderID].name,
 		pc.message.Type,
 		-1,
 		pc.message.Message,
