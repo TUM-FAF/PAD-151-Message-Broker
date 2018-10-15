@@ -14,7 +14,6 @@ type BcastCommand struct {
 // Execute - send
 func (bc BcastCommand) Execute() {
 	log.Printf("Broadcast to %d clients", len(bc.broker.userMap))
-	log.Println("Sending broadcast")
 	responseMessageModel := model.ResponseMessageModel{
 		bc.message.SenderID,
 		bc.message.Type,
