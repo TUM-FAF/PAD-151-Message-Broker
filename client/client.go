@@ -16,6 +16,7 @@ type Client struct {
 	connection  net.Conn
 	incomingMsg chan string
 	outcominMsg chan string
+	id          int
 }
 
 // Init ...
@@ -44,7 +45,8 @@ func (c *Client) Connect() {
 	message = strings.TrimSuffix(message, "\n")
 	c.sendConnectionRequest(message)
 	data := c.getConnectionResponse()
-	fmt.Printf("data: %s", data)
+	c.id = data.YourID
+	fmt.Printf("Your ID: %v\nRooms: %v\nUsers: %v", data.YourID, data.Rooms, data.Users)
 }
 
 // Run ...
@@ -102,18 +104,18 @@ func (c *Client) sendConnectionRequest(data string) {
 	c.connection.Write(append(msg.([]byte), newline...))
 }
 
-func (c *Client) getConnectionResponse() string {
-	reader := bufio.NewReader(c.connection)
-	data, err := reader.ReadString('\n')
+func (c *Client) getConnectionResponse() model.ConnectionModel {
+	recvBuf := make([]byte, 1024)
+	n, err := c.connection.Read(recvBuf[:])
 	if err != nil {
 		fmt.Println(err)
 	}
 	cp := ConnectionParser{}
-	msg, err := cp.ParseResponse(data)
+	msg, err := cp.ParseResponse(string(recvBuf[:n]))
 	if err != nil {
 		fmt.Println(err)
 	}
-	return msg.(string)
+	return msg.(model.ConnectionModel)
 }
 
 func (c *Client) listenIncomingMessages() {
