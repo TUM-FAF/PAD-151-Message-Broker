@@ -13,13 +13,14 @@ type BcastCommand struct {
 
 // Execute - send
 func (bc BcastCommand) Execute() {
+	log.Printf("Broadcast to %d clients", len(bc.broker.userMap))
+	log.Println("Sending broadcast")
 	responseMessageModel := model.ResponseMessageModel{
 		bc.message.SenderID,
 		bc.message.Type,
 		-1,
 		bc.message.Message,
 	}
-
 	for id := range bc.broker.userMap {
 
 		// Send them a message in a go-routine
@@ -31,7 +32,4 @@ func (bc BcastCommand) Execute() {
 
 		go sendMessage(user, responseMessageModel, bc.broker.deadUserIds)
 	}
-	log.Printf("New message: Client %s -> %s", bc.broker.userMap[bc.message.SenderID].name, bc.message.Message)
-	log.Printf("Broadcast to %d clients", len(bc.broker.userMap))
-
 }
