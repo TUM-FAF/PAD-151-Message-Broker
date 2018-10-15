@@ -72,7 +72,7 @@ func (c *Client) handleIncomingMessage(message string) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Printf("Client Id %d: %s\n", m.SenderID, m.Message)
+	fmt.Printf("%s: %s\n", m.SenderName, m.Message)
 }
 
 func (c *Client) handleOutcomingMessage(message string) {

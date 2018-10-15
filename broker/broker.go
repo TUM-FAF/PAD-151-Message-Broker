@@ -114,6 +114,8 @@ func (broker *Broker) Run() {
 
 			responseMessageModel := model.ResponseMessageModel{
 				sentMessageModel.SenderID,
+				// no name in sentMessageModel and get it from userMap
+				broker.userMap[sentMessageModel.SenderID].name,
 				sentMessageModel.Type,
 				-1,
 				sentMessageModel.Message,
