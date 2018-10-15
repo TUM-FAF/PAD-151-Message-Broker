@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strings"
 )
 
 // Client ...
@@ -40,7 +41,7 @@ func (c *Client) Connect() {
 	if err != nil {
 		fmt.Println(err, message)
 	}
-	fmt.Println(message)
+	message = strings.TrimSuffix(message, "\n")
 	c.sendConnectionRequest(message)
 	data := c.getConnectionResponse()
 	fmt.Printf("data: %s", data)
@@ -56,6 +57,7 @@ func (c *Client) Run() {
 		case newIncomingMessage := <-c.incomingMsg:
 			c.handleIncomingMessage(newIncomingMessage)
 		case newOutcomindMessage := <-c.outcominMsg:
+			newOutcomindMessage = strings.TrimSuffix(newOutcomindMessage, "\n")
 			c.handleOutcomingMessage(newOutcomindMessage)
 		}
 	}
@@ -72,7 +74,6 @@ func (c *Client) handleIncomingMessage(message string) {
 }
 
 func (c *Client) handleOutcomingMessage(message string) {
-	c.connection.Write([]byte(message))
 	mp := MessageParser{}
 	m, err := mp.Parse(message)
 	if err != nil {
