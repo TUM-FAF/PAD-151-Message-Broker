@@ -9,15 +9,15 @@ type UserModel struct {
 
 // ConnectionModel - on connection (or on request), broker send connected clients
 type ConnectionModel struct {
-	YourID int `yaml:"yourId"`
+	YourID int `json:"yourId"`
 	Users  []struct {
-		ID   int    `yaml:"id"`
-		Name string `yaml:"name"`
-	} `yaml:"users"`
+		ID   int    `json:"id"`
+		Name string `json:"name"`
+	} `json:"users"`
 	Rooms []struct {
-		ID   int    `yaml:"id"`
-		Room string `yaml:"room"`
-	} `yaml:"rooms"`
+		ID   int    `json:"id"`
+		Room string `json:"room"`
+	} `json:"rooms"`
 }
 
 // SentMessageModel - on new message, client send
