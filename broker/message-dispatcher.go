@@ -15,6 +15,8 @@ func DispatchMessage(message model.SentMessageModel, broker *Broker) Command {
 		return PublishCommand{message, broker}
 	case 6:
 		return SubscribeCommand{message, broker}
+	case 7:
+		return CusersCommand{message, broker}
 	}
 	return IgnoreCommand{}
 }
