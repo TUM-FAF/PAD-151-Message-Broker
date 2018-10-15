@@ -24,13 +24,17 @@ func (user *User) Init(conn net.Conn, id int) {
 	log.Printf("Accepted new client, #%s", user.name)
 }
 
+func (user *User) sendConnectResponse(response interface{}) {
+	model.EncodeYamlMessage(response.([]byte))
+}
+
 func getUserName(conn net.Conn) string {
 	// we create a decoder that reads directly from the socket
 	var userModel model.UserModel
 	reader := bufio.NewReader(conn)
-	message, _ := reader.ReadString(';')
+	message, _ := reader.ReadString('\n')
 	// fmt.Println(message)
-	message = strings.TrimSuffix(message, ";")
+	message = strings.TrimSuffix(message, "\n")
 	model.DecodeJsonMessage([]byte(message), &userModel)
 	return userModel.Name
 }
@@ -42,12 +46,12 @@ func getUserName(conn net.Conn) string {
 func getMessages(user *User, messages chan<- model.SentMessageModel, deadUserIds chan<- int) {
 	reader := bufio.NewReader(user.conn)
 	for {
-		incoming, err := reader.ReadString(';')
+		incoming, err := reader.ReadString('\n')
 		if err != nil {
 			break
 		}
 		// messages <- fmt.Sprintf("Client %s > %s", user.name, incoming)
-		incoming = strings.TrimSuffix(incoming, ";")
+		incoming = strings.TrimSuffix(incoming, "\n")
 		sentMessageModel := model.SentMessageModel{}
 
 		model.DecodeJsonMessage([]byte(incoming), &sentMessageModel)

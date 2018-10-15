@@ -66,7 +66,7 @@ func (c *Client) Run() {
 
 func (c *Client) handleIncomingMessage(message string) {
 	// go notification.PlayNotification()
-	mp := MessageParser{}
+	mp := ResponseParser{}
 	m, err := mp.Parse(message)
 	fmt.Println(err)
 	fmt.Println(m)
@@ -85,7 +85,9 @@ func (c *Client) handleOutcomingMessage(message string) {
 	if err != nil {
 		fmt.Print(err)
 	}
-	c.connection.Write(b)
+	newline := make([]byte, 1)
+	newline[0] = '\n'
+	c.connection.Write(append(b, newline...))
 }
 
 func (c *Client) sendConnectionRequest(data string) {
@@ -95,7 +97,9 @@ func (c *Client) sendConnectionRequest(data string) {
 		fmt.Println(err)
 	}
 	fmt.Println(string(msg.([]byte)))
-	c.connection.Write(msg.([]byte))
+	newline := make([]byte, 1)
+	newline[0] = '\n'
+	c.connection.Write(append(msg.([]byte), newline...))
 }
 
 func (c *Client) getConnectionResponse() string {

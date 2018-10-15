@@ -4,6 +4,7 @@ import (
 	"PAD-151-Message-Broker/model"
 	"fmt"
 	"log"
+	"math/rand"
 	"net"
 	"os"
 )
@@ -84,6 +85,20 @@ func (broker *Broker) Run() {
 			//
 			user := new(User)
 			user.Init(conn, broker.clientCount)
+			user.id = rand.Int()
+			var responseModel model.ConnectionModel
+			responseModel.Rooms = nil
+			responseModel.YourID = user.id
+
+			users := make(map[int]string)
+			for _, v := range broker.userMap {
+				users[v.id] = v.name
+			}
+			responseModel.Users = nil
+
+			r, _ := model.EncodeYamlMessage(responseModel)
+
+			conn.Write(r)
 
 			broker.userMap[broker.clientCount] = user
 
