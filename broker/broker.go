@@ -11,11 +11,15 @@ import (
 
 // Broker is type representing the message broker
 type Broker struct {
-	clientCount    int
-	userMap        map[int]*User
-	newConnections chan net.Conn
-	deadUserIds    chan int
-	messages       chan model.SentMessageModel
+	clientCount       int
+	userMap           map[int]*User
+	newConnections    chan net.Conn
+	deadUserIds       chan int
+	messages          chan model.SentMessageModel
+	broadcastMessages chan model.SentMessageModel
+	p2pMessages       chan model.SentMessageModel
+	subscribers       map[int][]*User
+	postMessages      chan model.SentMessageModel
 }
 
 // Init initiates broker data
@@ -41,6 +45,21 @@ func (broker *Broker) Init() {
 	// to every connection in allClients.
 	//
 	broker.messages = make(chan model.SentMessageModel)
+
+	// Channel for all messages that will be sent in broadcast
+	//
+	broker.broadcastMessages = make(chan model.SentMessageModel)
+
+	// Channel for all messages that will be sent to specific clients
+	//
+	broker.p2pMessages = make(chan model.SentMessageModel)
+
+	//Map of all subscribers
+	//
+	broker.subscribers = make(map[int][]*User)
+
+	// Channel for all messages that will be sent to subscribers
+	broker.postMessages = make(chan model.SentMessageModel)
 }
 
 // StartServer creates server, accepts connetions and runs broker
