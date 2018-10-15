@@ -77,7 +77,7 @@ func (c *Client) handleIncomingMessage(message string) {
 
 func (c *Client) handleOutcomingMessage(message string) {
 	mp := MessageParser{}
-	m, err := mp.Parse(message)
+	m, err := mp.Parse(message, c)
 	if err != nil {
 		return
 	}
