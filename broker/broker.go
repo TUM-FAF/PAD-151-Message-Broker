@@ -131,6 +131,21 @@ func (broker *Broker) Run() {
 			command := DispatchMessage(sentMessageModel, broker)
 			command.Execute()
 
+		// Send messages to broadcast
+		//
+		case message := <-broker.broadcastMessages:
+			SendBroadcast(message, broker)
+
+		// Send messages to specific user
+		//
+		case message := <-broker.p2pMessages:
+			SendP2P(message, broker)
+
+		// Send messages to subscribers
+		//
+		case message := <-broker.postMessages:
+			SendPostMessage(message, broker)
+
 		// Remove dead clients
 		//
 		case userID := <-broker.deadUserIds:
