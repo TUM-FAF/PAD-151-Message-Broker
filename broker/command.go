@@ -1,4 +1,4 @@
-package command
+package broker
 
 // Command - generic interface for command pattern.Command
 //

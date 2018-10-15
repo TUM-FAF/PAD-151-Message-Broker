@@ -1,4 +1,4 @@
-package command
+package broker
 
 // IgnoreCommand - do nothing command
 type IgnoreCommand struct {
