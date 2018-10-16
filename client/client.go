@@ -2,6 +2,7 @@ package client
 
 import (
 	"PAD-151-Message-Broker/model"
+	"PAD-151-Message-Broker/notification"
 	"bufio"
 	"fmt"
 	"net"
@@ -82,6 +83,7 @@ func (c *Client) Run() {
 }
 
 func (c *Client) handleIncomingMessage(message string) {
+	notification.PlayNotification()
 	m := model.ResponseMessageModel{}
 	err := model.DecodeYamlMessage([]byte(message), &m)
 	if err != nil {

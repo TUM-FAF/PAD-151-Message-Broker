@@ -27,6 +27,6 @@ func (pc P2pCommand) Execute() {
 
 	// Send message to specified user
 
-	go sendMessage(user, responseMessageModel, pc.broker.deadUserIds)
+	go sendMessage(user, responseMessageModel, DeadUserHandler{pc.broker})
 
 }
