@@ -126,10 +126,13 @@ func (c *Client) listenOutcomingMessages() {
 }
 
 func (c *Client) listen(reader Reader, channel chan string) {
+	dangerC := color.New(color.FgRed, color.Bold)
 	for {
 		s, err := reader.Read()
 		if err != nil {
-			fmt.Println(err)
+			dangerC.Println("Broker shutdown!!!")
+			c.connection.Close()
+			os.Exit(1)
 		}
 		channel <- string(s)
 	}
