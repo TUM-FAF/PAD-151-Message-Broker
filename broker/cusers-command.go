@@ -31,6 +31,6 @@ func (cc CusersCommand) Execute() {
 	}
 	responseMessageModel.Message = strings.Join(users, ", ")
 
-	go sendMessage(user, responseMessageModel, cc.broker.deadUserIds)
+	go sendMessage(user, responseMessageModel, DeadUserHandler{cc.broker})
 
 }

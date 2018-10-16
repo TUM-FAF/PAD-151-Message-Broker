@@ -29,6 +29,6 @@ func (bc BcastCommand) Execute() {
 
 		// Send message to specified user
 
-		go sendMessage(user, responseMessageModel, bc.broker.deadUserIds)
+		go sendMessage(user, responseMessageModel, DeadUserHandler{bc.broker})
 	}
 }

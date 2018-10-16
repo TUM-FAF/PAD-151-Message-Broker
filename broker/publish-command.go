@@ -24,9 +24,6 @@ func (pc PublishCommand) Execute() {
 
 	for _, v := range pc.broker.subscribers[publisherID] {
 		user := pc.broker.userMap[v]
-		go sendMessage(user, responseMessageModel, pc.broker.deadUserIds)
+		go sendMessage(user, responseMessageModel, DeadUserHandler{pc.broker})
 	}
-
-	// Send message to specified user
-
 }

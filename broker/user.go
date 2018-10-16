@@ -66,18 +66,26 @@ func getMessages(user *User, messages chan<- model.SentMessageModel, deadUserIds
 }
 
 // Send message to users connection
-func sendMessage(user *User, response model.ResponseMessageModel, deadUserIds chan<- int) {
+func sendMessage(user *User, response model.ResponseMessageModel, deadUserHandler DeadUserHandler) {
 
 	data, error := model.EncodeYamlMessage(response)
 	if error != nil {
 		fmt.Println(error)
 	}
+
+	// Safe check wheter the user does exist
+	if user == nil {
+		deadUserHandler.HandleUnexistingUser(response)
+		return
+	}
+
+	// Try to send data
 	_, err := user.conn.Write(data)
 
 	// If there was an error communicating
 	// with specified user, the connection is dead
 	// and we add user's id to deadUserIds.
 	if err != nil {
-		deadUserIds <- user.id
+		deadUserHandler.HandleExistingUser(user, response)
 	}
 }
