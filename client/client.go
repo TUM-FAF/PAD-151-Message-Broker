@@ -39,9 +39,9 @@ func (c *Client) Init(protocol string, address string) {
 //Connect ...
 func (c *Client) Connect() {
 	// fmt.Print("Enter your name: ")
-	d := color.New(color.FgCyan, color.Bold)
+	infoC := color.New(color.FgCyan, color.Bold)
 	comC := color.New(color.FgYellow)
-	d.Printf("Enter your name: ")
+	infoC.Printf("Enter your name: ")
 	reader := bufio.NewReader(os.Stdin)
 	message, err := reader.ReadString('\n')
 	if err != nil {
@@ -54,9 +54,9 @@ func (c *Client) Connect() {
 	// fmt.Printf("Your ID: %v\nRooms: %v\nUsers: %v\n", data.YourID, data.Rooms, data.Users)
 	magenta := color.New(color.FgMagenta).SprintFunc()
 	red := color.New(color.FgRed).SprintFunc()
-	d.Printf("Your ID: %v\n", magenta(data.YourID))
-	d.Printf("Users: %v\n", red(data.Users))
-	d.Printf("Commands:\n")
+	infoC.Printf("Your ID: %v\n", magenta(data.YourID))
+	infoC.Printf("Users: %v\n", red(data.Users))
+	infoC.Printf("Commands:\n")
 	comC.Println("broadcast:	/b [msg]")
 	comC.Println("publish:	/p [msg]")
 	comC.Println("subscribe:	/s [user ID]")
