@@ -40,6 +40,7 @@ func (c *Client) Init(protocol string, address string) {
 func (c *Client) Connect() {
 	// fmt.Print("Enter your name: ")
 	d := color.New(color.FgCyan, color.Bold)
+	comC := color.New(color.FgYellow)
 	d.Printf("Enter your name: ")
 	reader := bufio.NewReader(os.Stdin)
 	message, err := reader.ReadString('\n')
@@ -55,6 +56,12 @@ func (c *Client) Connect() {
 	red := color.New(color.FgRed).SprintFunc()
 	d.Printf("Your ID: %v\n", magenta(data.YourID))
 	d.Printf("Users: %v\n", red(data.Users))
+	d.Printf("Commands:\n")
+	comC.Println("broadcast:	/b [msg]")
+	comC.Println("publish:	/p [msg]")
+	comC.Println("subscribe:	/s [user ID]")
+	comC.Println("p2p:		/u [user ID] [msg]")
+	comC.Println("Connected:	/c")
 }
 
 // Run ...
