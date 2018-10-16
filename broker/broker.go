@@ -16,6 +16,8 @@ type Broker struct {
 	deadUserIds    chan int
 	messages       chan model.SentMessageModel
 	subscribers    map[int][]int
+	wireTap        *WireTap
+	listener       *net.Listener
 }
 
 // Init initiates broker data
@@ -45,6 +47,10 @@ func (broker *Broker) Init() {
 	//Map of all subscribers
 	//
 	broker.subscribers = make(map[int][]int)
+
+	//Initialise WireTap
+	broker.wireTap = &WireTap{}
+	broker.wireTap.Init("test.txt")
 }
 
 // StartServer creates server, accepts connetions and runs broker
@@ -52,18 +58,19 @@ func (broker *Broker) StartServer(connHost string, connPort string, connType str
 	// Start the TCP server
 	//
 	server, err := net.Listen(connType, connHost+":"+connPort)
+	broker.listener = &server
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	} else {
 		fmt.Println("Server started at port:", connPort)
 	}
-	defer server.Close()
+	defer broker.Finish()
 
 	//Listen accepted connection in another goroutine
 	go func() {
 		for {
-			conn, err := server.Accept()
+			conn, err := (*broker.listener).Accept()
 			if err != nil {
 				fmt.Println(err)
 				os.Exit(1)
@@ -114,6 +121,7 @@ func (broker *Broker) Run() {
 		// Accept messages from connected client
 		//
 		case message := <-broker.messages:
+			broker.wireTap.Append(&message)
 			command := DispatchMessage(message, broker)
 			command.Execute()
 
@@ -124,4 +132,9 @@ func (broker *Broker) Run() {
 			delete(broker.userMap, userID)
 		}
 	}
+}
+
+func (broker *Broker) Finish() {
+	(*broker.listener).Close()
+	broker.wireTap.Close()
 }
