@@ -16,6 +16,7 @@ func (bc BcastCommand) Execute() {
 	log.Printf("Broadcast to %d clients", len(bc.broker.userMap))
 	responseMessageModel := model.ResponseMessageModel{
 		bc.message.SenderID,
+		bc.broker.userMap[bc.message.SenderID].name,
 		bc.message.Type,
 		-1,
 		bc.message.Message,

@@ -20,6 +20,7 @@ func (dlc DeadLetterCommand) Execute() {
 	log.Printf("Send message to client %v", senderID)
 	responseMessageModel := model.ResponseMessageModel{
 		-1,
+		"Dead Letter Daemon",
 		8,
 		-1,
 		fmt.Sprintf("Dead Letter: Can't send message to %d", dlc.deadUserID),

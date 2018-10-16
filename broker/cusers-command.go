@@ -18,6 +18,7 @@ func (cc CusersCommand) Execute() {
 	log.Printf("Get list of active users for client %v", cc.message.SenderID)
 	responseMessageModel := model.ResponseMessageModel{
 		cc.message.SenderID,
+		cc.broker.userMap[cc.message.SenderID].name,
 		cc.message.Type,
 		-1,
 		cc.message.Message,

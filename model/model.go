@@ -26,8 +26,9 @@ type SentMessageModel struct {
 
 // ResponseMessageModel - on new message, broker send
 type ResponseMessageModel struct {
-	SenderID int    `json:"senderID"`
-	Type     int    `json:"type"`
-	Room     int    `json:"room"`
-	Message  string `json:"message"`
+	SenderID   int    `json:"senderID"`
+	SenderName string `json:"senderName"`
+	Type       int    `json:"type"`
+	Room       int    `json:"room"`
+	Message    string `json:"message"`
 }

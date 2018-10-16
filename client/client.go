@@ -2,11 +2,14 @@ package client
 
 import (
 	"PAD-151-Message-Broker/model"
+	"PAD-151-Message-Broker/notification"
 	"bufio"
 	"fmt"
 	"net"
 	"os"
 	"strings"
+
+	"github.com/fatih/color"
 )
 
 // Client ...
@@ -36,7 +39,10 @@ func (c *Client) Init(protocol string, address string) {
 
 //Connect ...
 func (c *Client) Connect() {
-	fmt.Print("Enter your name: ")
+	// fmt.Print("Enter your name: ")
+	infoC := color.New(color.FgCyan, color.Bold)
+	comC := color.New(color.FgYellow)
+	infoC.Printf("Enter your name: ")
 	reader := bufio.NewReader(os.Stdin)
 	message, err := reader.ReadString('\n')
 	if err != nil {
@@ -46,7 +52,17 @@ func (c *Client) Connect() {
 	c.sendConnectionRequest(message)
 	data := c.getConnectionResponse()
 	c.id = data.YourID
-	fmt.Printf("Your ID: %v\nRooms: %v\nUsers: %v\n", data.YourID, data.Rooms, data.Users)
+	// fmt.Printf("Your ID: %v\nRooms: %v\nUsers: %v\n", data.YourID, data.Rooms, data.Users)
+	magenta := color.New(color.FgMagenta).SprintFunc()
+	red := color.New(color.FgRed).SprintFunc()
+	infoC.Printf("Your ID: %v\n", magenta(data.YourID))
+	infoC.Printf("Users: %v\n", red(data.Users))
+	infoC.Printf("Commands:\n")
+	comC.Println("broadcast:	/b [msg]")
+	comC.Println("publish:	/p [msg]")
+	comC.Println("subscribe:	/s [user ID]")
+	comC.Println("p2p:		/u [user ID] [msg]")
+	comC.Println("Connected:	/c")
 }
 
 // Run ...
@@ -67,12 +83,20 @@ func (c *Client) Run() {
 }
 
 func (c *Client) handleIncomingMessage(message string) {
-	mp := ResponseParser{}
-	m, err := mp.Parse(message)
+	notification.PlayNotification()
+	m := model.ResponseMessageModel{}
+	err := model.DecodeYamlMessage([]byte(message), &m)
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println(m)
+	senderC := color.New().SprintFunc()
+	messageC := color.New(color.FgYellow, color.Italic).SprintFunc()
+	if m.SenderID%2 == 0 {
+		senderC = color.New(color.FgGreen, color.Bold, color.Italic).SprintFunc()
+	} else {
+		senderC = color.New(color.FgRed, color.Bold, color.Italic).SprintFunc()
+	}
+	fmt.Printf("%s %s\n", senderC(m.SenderName+":"), messageC(m.Message))
 }
 
 func (c *Client) handleOutcomingMessage(message string) {
